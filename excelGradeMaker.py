@@ -63,22 +63,22 @@ def generateExcel(template):
     for module in range(template['numModules']):
         # Set current module using index
         currentModule = template['modules'][module]
-        # Set column titles
+        # Set column headings
         worksheet.write(row, col, currentModule['name'], fHeading)
         worksheet.write(row, col+1, 'Weighting', fHeading)
         worksheet.write(row, col+2, 'Grade', fHeading)
         worksheet.write(row, col+3, 'Weighted Grade', fHeading)
         row+=1
+        startRange = row+1
         # For each piece of coursework, exam etc
         for modulePart in range(currentModule['numModuleParts']):
             # Set current item
             currentModulePart = currentModule['moduleParts'][modulePart]
             # Record first row
-            startRange = row-1
             worksheet.write(row, col, currentModulePart['name'], fData)
             worksheet.write(row, col+1, currentModulePart['weighting'], fDataPercent)
             worksheet.write(row, col+2, '', fDataPercent)
-            worksheet.write(row, col+3, '=B{0}*C{0}'.format(row), fDataPercent)
+            worksheet.write(row, col+3, '=B{0}*C{0}'.format(row+1), fDataPercent)
             row+=1
 
         worksheet.write(row, col, 'Average grade:', fBottom)
@@ -87,7 +87,7 @@ def generateExcel(template):
         worksheet.write(row, col+3, '=SUM(D{0}:D{1})'.format(startRange,(startRange + (currentModule['numModuleParts']-1))), fBottomPercent)
         row+=1
         worksheet.write(row, col+2, 'Module-Weighted total:', fBottom)
-        worksheet.write(row, col+3, '={0}*D{1}'.format(currentModule['weight'], row-1), fBottomPercent)
+        worksheet.write(row, col+3, '={0}*D{1}'.format(currentModule['weight'], row), fBottomPercent)
         row+=2
 
     workbook.close()
