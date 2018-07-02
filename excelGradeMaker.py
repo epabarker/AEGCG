@@ -34,6 +34,17 @@ class Assesment:
     weighting = 0
 
 
+class Style:
+
+    styles = {}
+
+    def add(self, key, value):
+        self.styles[key] = value
+
+    def get(self, style):
+        return self.styles[style]
+
+
 # FUNCTIONS ####################################################################
 
 # Gather input and return nested dictionary structure
@@ -67,12 +78,15 @@ def obtain_module_details(major):
 
         module = Module()
 
-        module.name = input("What is the name of module {}? : ".format(module_idx+1))
+        question = "What is the name of module {}? : "
+        module.name = input(question.format(module_idx+1))
 
-        module_weight = input("How many credits is module {} worth? : ".format(module.name))
+        question = "How many credits is module {} worth? : "
+        module_weight = input(question.format(module.name))
         module.weighting = int(module_weight) / major.credits
 
-        total_module_assesments = input("How many assesments (Exams, Coursework, etc) are in {}? : ".format(module.name))
+        question = "How many assesments (Exams, Coursework, etc) are in {}? : "
+        total_module_assesments = input(question.format(module.name))
         module.total_assements = int(total_module_assesments)
 
         obtain_assesment_details(module)
@@ -90,7 +104,9 @@ def obtain_assesment_details(module):
     for assesment_idx in range(module.total_assements):
 
         assesment = Assesment()
-        print("What is the type of the assesment for the assesment #{}? : ".format(assesment_idx + 1))
+
+        question = "What is the type of the assesment for the assesment #{}? : "
+        print(question.format(assesment_idx + 1))
 
         assesment_type_idx = 0
         for assesment_type in assesment.types:
@@ -98,63 +114,108 @@ def obtain_assesment_details(module):
             print('{} - {}'.format(assesment_type_idx, assesment_type))
         assesment.type = assesment.types[int(input('Select [1-4]: '))-1]
 
-        weighting = input("What is the value, as a percentage of the module, of {}? : ".format(assesment.type))
+        question = "What is the value, as a percentage of the module, of {}? : "
+        weighting = input(question.format(assesment.type))
         assesment.weighting = float(weighting)/100
 
         module.assesments.append(assesment)
 
 
-def generateExcel(template):
+
+def create_styles(workbook):
+
+    style = Style()
+
+    styles = {
+
+        'heading': {
+            'bold': True, 'border': '0', 'bg_color': '#CAE1E8'
+        },
+
+        'bottom': {
+            'bold': True, 'border': '0', 'bg_color': '#8DE5FF'
+        },
+
+        'bottom_percent': {
+            'border': '0', 'bg_color': '#8DE5FF', 'num_format': '0.00%'
+        },
+
+        'data': {
+            'bg_color': '#E9E9E9', 'num_format': '0'
+        },
+
+        'data_percent': {
+            'bg_color': '#E9E9E9', 'num_format': '0.00%'
+        }
+
+    }
+
+    for key, value in styles.items():
+        style.add(key, workbook.add_format(value))
+
+    return style
+
+
+def generate_spreadsheet(major):
+
     # Create a workbook and add a worksheet
-    workbook = xlsxwriter.Workbook('gradeCalculator.xlsx')
+    workbook = xlsxwriter.Workbook('grade_calculator.xlsx')
     worksheet = workbook.add_worksheet()
 
-    fHeading = workbook.add_format({'bold': True, 'border': '0', 'bg_color': '#CAE1E8'})
-    fBottom = workbook.add_format({'bold': True, 'border': '0', 'bg_color': '#8DE5FF'})
-    fBottomPercent = workbook.add_format({'border': '0', 'bg_color': '#8DE5FF', 'num_format': '0.00%'})
-    fData = workbook.add_format({'bg_color': '#E9E9E9'})
-    fDataPercent = workbook.add_format({'bg_color': '#E9E9E9', 'num_format': '0.00%'})
+    xls_style = create_styles(workbook)
 
     # Start from the first cell. Rows and columns are zero indexed.
     row = 0
     col = 0
 
-    worksheet.write(row, col, 'Num. modules:', fHeading)
-    worksheet.write(row, col+1, template['numModules'], fHeading)
+    worksheet.write(row, col, 'Num. modules:', xls_style.get('heading'))
+    worksheet.write(row, col+1, major.total_modules, xls_style.get('heading'))
     row+=1
-    worksheet.write(row, col, 'Num. credits:', fHeading)
-    worksheet.write(row, col+1, template['numCredits'], fHeading)
+    worksheet.write(row, col, 'Num. credits:', xls_style.get('heading'))
+    worksheet.write(row, col+1, major.credits, xls_style.get('heading'))
     row+=2
 
-    # For every module
-    for module in range(template['numModules']):
-        # Set current module using index
-        currentModule = template['modules'][module]
+    for module in major.modules:
+
         # Set column headings
-        worksheet.write(row, col, currentModule['name'], fHeading)
-        worksheet.write(row, col+1, 'Weighting', fHeading)
-        worksheet.write(row, col+2, 'Grade', fHeading)
-        worksheet.write(row, col+3, 'Weighted Grade', fHeading)
+        worksheet.write(row, col, module.name, xls_style.get('heading'))
+        worksheet.write(row, col+1, 'Weighting', xls_style.get('heading'))
+        worksheet.write(row, col+2, 'Grade', xls_style.get('heading'))
+        worksheet.write(row, col+3, 'Weighted Grade', xls_style.get('heading'))
+
         row+=1
-        startRange = row+1
-        # For each piece of coursework, exam etc
-        for modulePart in range(currentModule['numModuleParts']):
-            # Set current item
-            currentModulePart = currentModule['moduleParts'][modulePart]
+        start_range = row+1
+
+        for assesment in module.assesments:
+
             # Record first row
-            worksheet.write(row, col, currentModulePart['name'], fData)
-            worksheet.write(row, col+1, currentModulePart['weighting'], fDataPercent)
-            worksheet.write(row, col+2, '', fDataPercent)
-            worksheet.write(row, col+3, '=B{0}*C{0}'.format(row+1), fDataPercent)
+            worksheet.write(row, col, assesment.type, xls_style.get('data'))
+            worksheet.write(row, col+1, assesment.weighting, xls_style.get('data_percent'))
+            worksheet.write(row, col+2, '', xls_style.get('data'))
+            worksheet.write(row, col+3, '=B{0}*C{0}'.format(row+1), xls_style.get('data'))
             row+=1
 
-        worksheet.write(row, col, 'Average grade:', fBottom)
-        worksheet.write(row, col+1, '=IF(COUNTBLANK(C{0}:C{1})={2},"", AVERAGE(C{0}:C{1}))'.format(startRange,(startRange + (currentModule['numModuleParts']-1)),currentModule['numModuleParts']), fBottomPercent)
-        worksheet.write(row, col+2, 'Weighted Total:', fBottom)
-        worksheet.write(row, col+3, '=SUM(D{0}:D{1})'.format(startRange,(startRange + (currentModule['numModuleParts']-1))), fBottomPercent)
+        worksheet.write(row, col, 'Average grade:', xls_style.get('bottom'))
+
+        assesments = len(module.assesments)
+
+        template = '=IF(COUNTBLANK(C{0}:C{1})={2},"", AVERAGE(C{0}:C{1}))'
+        cell_data = template.format(start_range,(start_range + (assesments-1)),assesments)
+        worksheet.write(row, col+1, cell_data, xls_style.get('data'))
+
+        worksheet.write(row, col+2, 'Weighted Total:', xls_style.get('data'))
+
+        template = '=SUM(D{0}:D{1})'
+        cell_data = template.format(start_range, (start_range + (assesments - 1)))
+        worksheet.write(row, col+3, cell_data, xls_style.get('data'))
+
         row+=1
-        worksheet.write(row, col+2, 'Module-Weighted total:', fBottom)
-        worksheet.write(row, col+3, '={0}*D{1}'.format(currentModule['weight'], row), fBottomPercent)
+        worksheet.write(row, col+2, 'Module-Weighted total:', xls_style.get('bottom'))
+
+        template = '={0}*D{1}'
+        cell_data = template.format(module.weighting, row)
+        worksheet.write(row, col+3, cell_data, xls_style.get('data'))
+
         row+=2
 
     workbook.close()
@@ -165,5 +226,7 @@ def generateExcel(template):
 if __name__ == '__main__':
     # Iterate over the data and write it out row by row.
     major = obtain_major_details()
-    print(major.modules[0].name)
-    print(major.modules[0].assesments[0].type)
+
+    print('Data collection complete')
+    generate_spreadsheet(major)
+    print('Spreadsheet generation complete')
