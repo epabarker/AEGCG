@@ -9,3 +9,15 @@ Clone the github, or navigate to the directory where the repository has been dow
 $ python excelGradeMaker.py
 
 You will then be greeted with a series of questions regarding the structure of your degree. After all questions have been concluded, an excel spreadsheet will be generated in the same directory as the python file. 
+
+
+To be added:
+
+  - GUI
+  - Web application
+  - Input validation
+  - Multiple academic years
+  - Semesters?
+  - Degree classification, average per semester, average for year
+  - Download file prompt
+  - Download/view counter
