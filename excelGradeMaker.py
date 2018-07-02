@@ -1,40 +1,107 @@
 import xlsxwriter
-import argparse
+
+# CLASSES ######################################################################
+
+class Major:
+    """ The course the student is studying """
+
+    total_modules = 0
+
+    credits = 0
+
+    modules = []
+
+
+class Module:
+    """ Module under the course """
+
+    name = None
+
+    weighting = 0
+
+    total_assements = 0
+
+    assesments = []
+
+
+class Assesment:
+    """ Module assesment details """
+
+    types = ['Exam', 'Coursework', 'Class Test', 'Lab Test']
+
+    type = None  # Exam, Coursework
+
+    weighting = 0
+
+
+# FUNCTIONS ####################################################################
 
 # Gather input and return nested dictionary structure
-def gatherInput():
-    numModules = input("How many modules are you studying this academic year? : ")
-    numModules = int(numModules)
+def obtain_major_details():
+    """
+    Obtain all details about the course one year
+    :return Major object
+    """
 
-    numCredits = input("How many credits are there in total this academic year? : ")
-    numCredits = int(numCredits)
+    major = Major()
 
-    yearInfo = {'numModules': numModules, 'numCredits': numCredits, 'modules': []}
+    total_modules = input("How many modules are you studying this academic year? : ")
+    major.total_modules = int(total_modules)
 
-    for module in range(numModules):
-        moduleName = input("What is the name of module {}? : ".format(module+1))
+    credits = input("How many credits are there in total this academic year? : ")
+    major.credits = int(credits)
 
-        moduleWeight = input("How many credits is module {} worth? : ".format(moduleName))
-        moduleWeight = int(moduleWeight)/numCredits
+    obtain_module_details(major)
 
-        numModuleParts = input("How many separate marked items (Exams, Coursework, etc) are in {}? : ".format(moduleName))
-        numModuleParts = int(numModuleParts)
+    return major
 
-        moduleInfo = {'name': moduleName, 'weight':moduleWeight, 'numModuleParts': numModuleParts, 'moduleParts': []}
 
-        for item in range(numModuleParts):
-            itemName = input("What is the name of module item {}? : ".format(item+1))
+def obtain_module_details(major):
+    """
+    Obtain all information about major modules
+    :param major: Major object
+    :return void
+    """
 
-            weighting = input("What is the value, as a percentage of the module, of {}? : ".format(itemName))
-            weighting = float(weighting)/100
+    for module_idx in range(major.total_modules):
 
-            itemInfo = {'name': itemName, 'weighting': weighting}
+        module = Module()
 
-            moduleInfo['moduleParts'].append(itemInfo)
+        module.name = input("What is the name of module {}? : ".format(module_idx+1))
 
-        yearInfo['modules'].append(moduleInfo)
+        module_weight = input("How many credits is module {} worth? : ".format(module.name))
+        module.weighting = int(module_weight) / major.credits
 
-    return yearInfo
+        total_module_assesments = input("How many assesments (Exams, Coursework, etc) are in {}? : ".format(module.name))
+        module.total_assements = int(total_module_assesments)
+
+        obtain_assesment_details(module)
+
+        major.modules.append(module)
+
+
+def obtain_assesment_details(module):
+    """
+    Obtain all information about module assesments
+    :param module: Module object
+    :return void
+    """
+
+    for assesment_idx in range(module.total_assements):
+
+        assesment = Assesment()
+        print("What is the type of the assesment for the assesment #{}? : ".format(assesment_idx + 1))
+
+        assesment_type_idx = 0
+        for assesment_type in assesment.types:
+            assesment_type_idx += 1
+            print('{} - {}'.format(assesment_type_idx, assesment_type))
+        assesment.type = assesment.types[int(input('Select [1-4]: '))-1]
+
+        weighting = input("What is the value, as a percentage of the module, of {}? : ".format(assesment.type))
+        assesment.weighting = float(weighting)/100
+
+        module.assesments.append(assesment)
 
 
 def generateExcel(template):
@@ -93,5 +160,10 @@ def generateExcel(template):
     workbook.close()
 
 
-# Iterate over the data and write it out row by row.
-generateExcel(gatherInput())
+# MAIN #########################################################################
+
+if __name__ == '__main__':
+    # Iterate over the data and write it out row by row.
+    major = obtain_major_details()
+    print(major.modules[0].name)
+    print(major.modules[0].assesments[0].type)
