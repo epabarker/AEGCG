@@ -35,13 +35,23 @@ class Assesment:
 
 
 class Style:
+    """ Store XLS styles """
 
     styles = {}
 
     def add(self, key, value):
+        """
+        add new style
+        :param key: style reference label
+        :param value: style definition
+        """
         self.styles[key] = value
 
     def get(self, style):
+        """
+        :param style: style definition to fetch
+        :return style definition
+        """
         return self.styles[style]
 
 
@@ -123,6 +133,10 @@ def obtain_assesment_details(module):
 
 
 def create_styles(workbook):
+    """
+    :param workbook: xlsxwriter Workbook object
+    return Style object
+    """
 
     style = Style()
 
