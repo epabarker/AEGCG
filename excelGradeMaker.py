@@ -1,4 +1,5 @@
 import xlsxwriter
+from xlsxwriter.utility import xl_rowcol_to_cell
 
 # CLASSES #####################################################################
 
@@ -11,6 +12,10 @@ class Major:
     credits = 0
 
     modules = []
+
+    module_avg_indices = []
+
+    weighted_total_indices = []
 
 
 class Module:
@@ -145,11 +150,11 @@ def create_styles(workbook):
     styles = {
 
         'heading': {
-            'bold': True, 'border': '0', 'bg_color': '#CAE1E8'
+            'bold': True, 'border':0, 'bg_color': '#CAE1E8'
         },
 
         'bottom': {
-            'bold': True, 'border': '0', 'bg_color': '#8DE5FF'
+            'bold': True, 'border':0, 'bg_color': '#8DE5FF'
         },
 
         'bottom_percent': {
@@ -157,11 +162,11 @@ def create_styles(workbook):
         },
 
         'data': {
-            'bg_color': '#E9E9E9', 'num_format': '0'
+            'bg_color': '#E9E9E9', 'border':7, 'num_format': '0'
         },
 
         'data_percent': {
-            'bg_color': '#E9E9E9', 'num_format': '0.00%'
+            'bg_color': '#E9E9E9', 'border':7, 'num_format': '0.00%'
         }
 
     }
@@ -193,7 +198,7 @@ def generate_spreadsheet(major):
 
     for module in major.modules:
 
-        # Set column headings
+        # COLUMN HEADINGS FOR EACH MODULE
         worksheet.write(row, col, module.name, xls_style.get('heading'))
         worksheet.write(row, col+1, 'Weighting', xls_style.get('heading'))
         worksheet.write(row, col+2, 'Grade', xls_style.get('heading'))
@@ -204,36 +209,64 @@ def generate_spreadsheet(major):
 
         for assesment in module.assesments:
 
-            # Record first row
+            # DATA FOR EACH ASSESSMENT IN MODULE
             worksheet.write(row, col, assesment.type, xls_style.get('data'))
             worksheet.write(row, col+1, assesment.weighting, xls_style.get('data_percent'))
-            worksheet.write(row, col+2, '', xls_style.get('data'))
-            worksheet.write(row, col+3, '=B{0}*C{0}'.format(row+1), xls_style.get('data'))
+            worksheet.write(row, col+2, '', xls_style.get('data_percent'))
+            worksheet.write(row, col+3, '=B{0}*C{0}'.format(row+1), xls_style.get('data_percent'))
             row += 1
 
         worksheet.write(row, col, 'Average grade:', xls_style.get('bottom'))
 
         assesments = len(module.assesments)
-
+        # AVERAGE GRADE FOR MODULE
         template = '=IF(COUNTBLANK(C{0}:C{1})={2},"", AVERAGE(C{0}:C{1}))'
         end_range = (start_range + (assesments-1))
         cell_data = template.format(start_range, end_range, assesments)
         worksheet.write(row, col+1, cell_data, xls_style.get('data'))
+        # Store Excel location of average
+        major.module_avg_indices.append(xl_rowcol_to_cell(row, (col+1)))
 
-        worksheet.write(row, col+2, 'Weighted Total:', xls_style.get('bottom'))
-
+        worksheet.write(row, col+2, 'Overall grade:', xls_style.get('bottom'))
+        # WEIGHTED TOTAL FOR MODULE
         template = '=SUM(D{0}:D{1})'
         cell_data = template.format(start_range, end_range)
         worksheet.write(row, col+3, cell_data, xls_style.get('data'))
 
         row += 1
-        worksheet.write(row, col+2, 'Module-Weighted total:', xls_style.get('bottom'))
-
+        worksheet.write(row, col+2, 'Weighted total:', xls_style.get('bottom'))
+        # MODULE WEIGHT APPLIED
         template = '={0}*D{1}'
         cell_data = template.format(module.weighting, row)
         worksheet.write(row, col+3, cell_data, xls_style.get('data'))
-
+        # Store Excel location of module-weighted total
+        major.weighted_total_indices.append(xl_rowcol_to_cell(row, (col+3)))
         row += 2
+
+    # DISPLAY MAJOR-WIDE STATISTICS
+    row = 0
+    col = 5
+
+    # AVERAGE GRADE ACROSS WHOLE YEAR
+    worksheet.write(row, col, 'Average grade for year:', xls_style.get('heading'))
+    template = '=AVERAGE({0})'
+    cell_data = template.format(",".join(major.module_avg_indices))
+    worksheet.write(row, col+1, cell_data, xls_style.get('data_percent'))
+    row+=2
+
+    # TOTAL GRADE FOR THE YEAR
+    worksheet.write(row, col, 'Total grade for year:', xls_style.get('heading'))
+    template = '=SUM({0})'
+    cell_data = template.format(",".join(major.weighted_total_indices))
+    worksheet.write(row, col+1, cell_data, xls_style.get('data_percent'))
+    row+=2
+
+    # DEGREE CLASSIFICATION FOR YEAR
+    worksheet.write(row, col, 'Degree Classification:', xls_style.get('heading'))
+    template = '=IF({0}>=70,"1st",IF({0}>=60,"2:1",IF({0}>=50,"2:2",IF({0}>=40,"3rd","Fail"))))'
+    cell_data = template.format(xl_rowcol_to_cell(row-2, col))
+    worksheet.write(row, col+1, cell_data)
+    row+=2
 
     workbook.close()
 
