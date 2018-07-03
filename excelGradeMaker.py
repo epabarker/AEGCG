@@ -190,10 +190,10 @@ def generate_spreadsheet(major):
     col = 0
 
     worksheet.write(row, col, 'Num. modules:', xls_style.get('heading'))
-    worksheet.write(row, col+1, major.total_modules, xls_style.get('heading'))
+    worksheet.write(row, col+1, major.total_modules, xls_style.get('data'))
     row += 1
     worksheet.write(row, col, 'Num. credits:', xls_style.get('heading'))
-    worksheet.write(row, col+1, major.credits, xls_style.get('heading'))
+    worksheet.write(row, col+1, major.credits, xls_style.get('data'))
     row += 2
 
     for module in major.modules:
@@ -223,7 +223,7 @@ def generate_spreadsheet(major):
         template = '=IF(COUNTBLANK(C{0}:C{1})={2},"", AVERAGE(C{0}:C{1}))'
         end_range = (start_range + (assesments-1))
         cell_data = template.format(start_range, end_range, assesments)
-        worksheet.write(row, col+1, cell_data, xls_style.get('data'))
+        worksheet.write(row, col+1, cell_data, xls_style.get('data_percent'))
         # Store Excel location of average
         major.module_avg_indices.append(xl_rowcol_to_cell(row, (col+1)))
 
@@ -231,14 +231,14 @@ def generate_spreadsheet(major):
         # WEIGHTED TOTAL FOR MODULE
         template = '=SUM(D{0}:D{1})'
         cell_data = template.format(start_range, end_range)
-        worksheet.write(row, col+3, cell_data, xls_style.get('data'))
+        worksheet.write(row, col+3, cell_data, xls_style.get('data_percent'))
 
         row += 1
         worksheet.write(row, col+2, 'Weighted total:', xls_style.get('bottom'))
         # MODULE WEIGHT APPLIED
         template = '={0}*D{1}'
         cell_data = template.format(module.weighting, row)
-        worksheet.write(row, col+3, cell_data, xls_style.get('data'))
+        worksheet.write(row, col+3, cell_data, xls_style.get('data_percent'))
         # Store Excel location of module-weighted total
         major.weighted_total_indices.append(xl_rowcol_to_cell(row, (col+3)))
         row += 2
@@ -263,9 +263,9 @@ def generate_spreadsheet(major):
 
     # DEGREE CLASSIFICATION FOR YEAR
     worksheet.write(row, col, 'Degree Classification:', xls_style.get('heading'))
-    template = '=IF({0}>=70,"1st",IF({0}>=60,"2:1",IF({0}>=50,"2:2",IF({0}>=40,"3rd","Fail"))))'
-    cell_data = template.format(xl_rowcol_to_cell(row-2, col))
-    worksheet.write(row, col+1, cell_data)
+    template = '=IF({0}>=0.7,"1st",IF({0}>=0.6,"2:1",IF({0}>=0.5,"2:2",IF({0}>=0.4,"3rd","Fail"))))'
+    cell_data = template.format(xl_rowcol_to_cell(row-2, col+1))
+    worksheet.write(row, col+1, cell_data, xls_style.get('data'))
     row+=2
 
     workbook.close()
