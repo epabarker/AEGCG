@@ -220,7 +220,7 @@ def generate_spreadsheet(major):
         cell_data = template.format(start_range, end_range, assesments)
         worksheet.write(row, col+1, cell_data, xls_style.get('data'))
 
-        worksheet.write(row, col+2, 'Weighted Total:', xls_style.get('data'))
+        worksheet.write(row, col+2, 'Weighted Total:', xls_style.get('bottom'))
 
         template = '=SUM(D{0}:D{1})'
         cell_data = template.format(start_range, end_range)
