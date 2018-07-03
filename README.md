@@ -20,6 +20,6 @@ To be added:
   - Input validation
   - Multiple academic years
   - Semesters?
-  - Degree classification, average per semester, average for year
+  - ~~Degree classification, average per semester, average for year~~
   - Download file prompt
   - Download/view counter
