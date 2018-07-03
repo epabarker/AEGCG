@@ -10,6 +10,9 @@ $ python excelGradeMaker.py
 
 You will then be greeted with a series of questions regarding the structure of your degree. After all questions have been concluded, an excel spreadsheet will be generated in the same directory as the python file. 
 
+NOTE:
+xlsxwriter is not able to AutoFit, as this can only be done at runtime. Make sure to AutoFit Columns when you open your file. 
+
 
 To be added:
 
