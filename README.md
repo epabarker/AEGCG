@@ -13,6 +13,8 @@ You will then be greeted with a series of questions regarding the structure of y
 
 To be added:
 
+  - ~~OOP~~
+  - ~~Good coding style~~
   - GUI
   - Web application
   - Input validation
